@@ -278,13 +278,13 @@ class Scenario(BaseScenario):
         return self.sampling_rew if self.shared_rew else agent.sample
 
     def observation(self, agent: Agent) -> Tensor:
-        observations = [
-            agent.state.pos,
-            agent.state.vel,
-            agent.sensors[0].measure(),
-        ]
+        observations = {
+            "pos": agent.state.pos,
+            "vel": agent.state.vel,
+            "lidar": agent.sensors[0].measure(),
+        }
 
-        for delta in [
+        deltas = [
             [self.grid_spacing, 0],
             [-self.grid_spacing, 0],
             [0, self.grid_spacing],
@@ -293,7 +293,9 @@ class Scenario(BaseScenario):
             [self.grid_spacing, -self.grid_spacing],
             [-self.grid_spacing, self.grid_spacing],
             [self.grid_spacing, self.grid_spacing],
-        ]:
+        ]
+
+        for i, delta in enumerate(deltas):
             pos = agent.state.pos + torch.tensor(
                 delta,
                 device=self.world.device,
@@ -303,12 +305,9 @@ class Scenario(BaseScenario):
                 pos,
                 update_sampled_flag=False,
             ).unsqueeze(-1)
-            observations.append(sample)
+            observations[f"sample_{i}"] = sample
 
-        return torch.cat(
-            observations,
-            dim=-1,
-        )
+        return observations
 
     def info(self, agent: Agent) -> Dict[str, Tensor]:
         return {"agent_sample": agent.sample}
