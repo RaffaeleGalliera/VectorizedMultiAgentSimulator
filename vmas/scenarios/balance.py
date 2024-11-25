@@ -241,20 +241,17 @@ class Scenario(BaseScenario):
 
     def observation(self, agent: Agent):
         # get positions of all entities in this agent's reference frame
-        return torch.cat(
-            [
-                agent.state.pos,
-                agent.state.vel,
-                agent.state.pos - self.package.state.pos,
-                agent.state.pos - self.line.state.pos,
-                self.package.state.pos - self.package.goal.state.pos,
-                self.package.state.vel,
-                self.line.state.vel,
-                self.line.state.ang_vel,
-                self.line.state.rot % torch.pi,
-            ],
-            dim=-1,
-        )
+        return {
+                "pos": agent.state.pos,
+                "vel": agent.state.vel,
+                "pck_ref": agent.state.pos - self.package.state.pos,
+                "line_ref": agent.state.pos - self.line.state.pos,
+                "goal_ref": self.package.state.pos - self.package.goal.state.pos,
+                "pck_vel": self.package.state.vel,
+                "line_vel": self.line.state.vel,
+                "line_ang_Vel": self.line.state.ang_vel,
+                "line_rot": self.line.state.rot % torch.pi,
+        }
 
     def done(self):
         return self.on_the_ground + self.world.is_overlapping(
