@@ -221,16 +221,19 @@ class Scenario(BaseScenario):
             elif agent.adversary and other.adversary and self.observe_same_team:
                 other_pos.append(other.state.pos - agent.state.pos)
 
-        return torch.cat(
+        obs_tensor = torch.cat(
             [
                 *([agent.state.vel] if self.observe_vel else []),
-                *([agent.state.pos] if self.observe_pos else []),
-                *entity_pos,
                 *other_pos,
                 *other_vel,
             ],
             dim=-1,
         )
+
+        return {
+            "pos": agent.state.pos,
+            "obs": obs_tensor,
+        }
 
     def extra_render(self, env_index: int = 0):
         from vmas.simulator import rendering
